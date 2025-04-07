@@ -47,10 +47,10 @@
                 list-style: none;
                 margin-top: 520px;
             ">
-                <li>Vélos</li>
-                <li style="color: #DA2121;">Caractéristique</li>
-                <li>Galerie</li>
-                <li>Rendez-vous</li>
+                <li><a href="#velo">Vélos</a></li>
+                <li style="color: #DA2121;"><a href="#caracteristique">Caractéristique</a></li>
+                <li><a href="#galerie">Galerie</a></li>
+                <li><a href="#footer">Contact</a></li>
             </ul>
 
 

@@ -8,7 +8,7 @@
         <div class="logo"><a href="#"><img src="../../../assets/logo2.png"></a></div>
         <ul class="nav-list">
             <li><a href="#galerie">Galerie</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="#footer">Contact</a></li>
             <router-link to="/LoginClient">Login</router-link>
         </ul>
     </nav>
