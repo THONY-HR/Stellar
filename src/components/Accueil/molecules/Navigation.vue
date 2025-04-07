@@ -3,11 +3,13 @@
         <ul class="nav-list">
             <li><a href="#velo">Vélos</a></li>
             <li class="change"><a href="#caracteristique">Caractéristique</a></li>
+            <li><router-link to="/boutique">Boutique</router-link></li>            
         </ul>
         <div class="logo"><a href="#"><img src="../../../assets/logo2.png"></a></div>
         <ul class="nav-list">
             <li><a href="#galerie">Galerie</a></li>
             <li><a href="#contact">Contact</a></li>
+            <router-link to="/LoginClient">Login</router-link>
         </ul>
     </nav>
 </template>
@@ -29,7 +31,7 @@
     }
 
     .nav-list li {
-        margin: 0 100px;
+        margin: 0 50px;
         font-size: 14px;
         list-style-type: none;
         cursor: pointer;

@@ -1,7 +1,8 @@
-<script setup>
-  import Accueil from './view/Accueil.vue'
-</script>
-
 <template>
-  <Accueil/>
+    <router-view></router-view>
 </template>
+<style>
+    a {
+        text-decoration: none;
+    }
+</style>
