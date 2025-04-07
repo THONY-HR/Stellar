@@ -31,10 +31,20 @@ export const postData = async (endpoint, payload) => {
     });
     return response.data;
   } catch (error) {
-    console.error("Erreur lors de l'envoi des données :", error.message);
-    throw error;
+    if (error.response) {
+      console.error("📦 Réponse d'erreur Dolibarr :", error.response.data);
+      console.error("🔢 Statut HTTP :", error.response.status);
+      throw new Error(error.response.data.error || 'Erreur API Dolibarr');
+    } else if (error.request) {
+      console.error("📡 Aucune réponse reçue de Dolibarr :", error.request);
+      throw new Error('Aucune réponse du serveur Dolibarr.');
+    } else {
+      console.error("❌ Erreur inconnue :", error.message);
+      throw error;
+    }
   }
 };
+
 
 export const deleteData = async (endpoint) => {
   try {

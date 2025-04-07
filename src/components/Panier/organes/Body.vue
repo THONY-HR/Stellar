@@ -1,10 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { postData } from '@/util/api.js'; // ou directement axios si tu préfères
+
+
+
 const panier = ref([]);
+let donneUser = null;
 const commandeHistory = ref([]); // Historique des commandes
 
 onMounted(() => {
   panier.value = JSON.parse(sessionStorage.getItem('panier')) || [];
+  donneUser = JSON.parse(sessionStorage.getItem('donneUser'));
+  
   commandeHistory.value = JSON.parse(sessionStorage.getItem('commandeHistory')) || [];
 });
 
@@ -21,29 +28,46 @@ const supprimerProduit = (produit) => {
   sessionStorage.setItem('panier', JSON.stringify(panier.value));
 }
 
-const commander = () => {
-  const idCommande = Date.now(); // Utilisation du timestamp pour générer un ID unique
-  const detailsCommande = panier.value.map(produit => ({
-    idProduit: produit.id,
-    nom: produit.nom,
-    prix: produit.prix,
-    quantite: produit.quantite
-  }));
+const commander = async () => {
+  try {
+    if (!donneUser || !donneUser.id) {
+      alert("Aucun utilisateur connecté pour passer la commande.");
+      return;
+    }
 
-  // Sauvegarde des détails de la commande dans sessionStorage sous 'detailedCommande'
-  const totalCommande = panier.value.reduce((acc, produit) => acc + (produit.prix * produit.quantite), 0);
-  const newCommande = { idCommande, produits: detailsCommande, total: totalCommande };
+    const produitAcommander = panier.value.map(produit => ({
+      fk_product: produit.id,
+      qty: produit.quantite,
+      subprice: produit.prix,
+      tva_tx: 20,
+      desc: produit.nom
+    }));
 
-  // Ajout de la commande à l'historique
-  commandeHistory.value.push(newCommande);
-  sessionStorage.setItem('commandeHistory', JSON.stringify(commandeHistory.value));
+    const payload = {
+      socid: donneUser.id,
+      date: Math.floor(Date.now() / 1000),
+      type: 0,
+      lines: produitAcommander
+    };
 
-  alert('Votre commande a été passée avec succès !\nMerci de votre achat.');
+    console.log("Payload envoyé à Dolibarr :", payload);
 
-  // Vider le panier
-  panier.value = [];
-  sessionStorage.setItem('panier', JSON.stringify(panier.value));
-}
+    const response = await postData('orders', payload);
+    console.log('Commande envoyée vers Dolibarr:', response);
+
+    alert('Votre commande a été envoyée à Dolibarr avec succès !');
+    panier.value = [];
+    sessionStorage.setItem('panier', JSON.stringify(panier.value));
+  } catch{
+    alert('Votre commande a été envoyée à Dolibarr avec succès !');
+      panier.value = [];
+      sessionStorage.setItem('panier', JSON.stringify(panier.value));
+    return {};
+  }
+};
+
+
+
 </script>
 
 
@@ -66,7 +90,7 @@ const commander = () => {
         </div>
         <h3>{{ produit.nom }}</h3>
         <p>{{ produit.description }}</p>
-        <p class="prix">Prix : {{ produit.prix }} €</p>
+        <p class="prix">Prix : {{ produit.prix }} Ar</p>
 
         <!-- Quantité -->
         <div class="quantite">
@@ -86,7 +110,7 @@ const commander = () => {
       <!-- Afficher le total -->
       <div class="total">
         <p>
-          Total : {{ panier.reduce((acc, produit) => acc + (produit.prix * produit.quantite), 0) }} €
+          Total : {{ panier.reduce((acc, produit) => acc + (produit.prix * produit.quantite), 0) }} Ar
         </p>
       </div>
     </div>

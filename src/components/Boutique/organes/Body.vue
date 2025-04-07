@@ -3,39 +3,59 @@ import { ref, computed, onMounted } from 'vue'
 import { getData } from '@/util/api.js'
 
 import bike1 from '@/assets/Bike/bike.png'
-var baseURL = "http://localhost/dolibarr-21.0.0/documents/produit/"
+const baseURL = "http://localhost/dolibarr-21.0.0/documents/produit" // Assurez-vous que cette URL est correcte
 const products = ref([]);
 const produits = ref([]);
 const categories = ref([]);
 
 const loadProducts = async () => {
   try {
-    const data = await getData('products'); // appelle ton API Dolibarr
+    const data = await getData('products'); // Appel à votre API Dolibarr pour récupérer les produits
+    console.log("Produits :", data);
     const categoriesData = await getData('categories?sortfield=t.rowid&sortorder=ASC&limit=50');
-    for (let index = 0; index < categoriesData.length; index++) {
-      categories.value.push(categoriesData[index].label);
-    }
+    categories.value = categoriesData.map(cat => cat.label);
+
     products.value = data;
 
     for (let index = 0; index < products.value.length; index++) {
-      var urlImage = await getData('documents?modulepart=product&id=' + products.value[index].id);
-      var cat = await getData('products/' + products.value[index].id +'/categories?sortfield=s.rowid&sortorder=ASC');
-      // Construction de l'URL relative de l'image
-      const imageUrl = `${baseURL}/${urlImage[index].level1name}/${urlImage[0].relativename}`;
+      // Tentative de récupération de l'image via l'API
+      let urlImageResponse = null;
+      try {
+        urlImageResponse = await getData('documents?modulepart=product&id=' + products.value[index].id);
+      } catch (err) {
+        console.error('Erreur récupération image pour le produit', products.value[index].id, err);
+      }
+      let imageUrl = bike1; // Image par défaut
+      if (urlImageResponse && Array.isArray(urlImageResponse) && urlImageResponse.length > 0) {
+        const doc = urlImageResponse[0];
+        if (doc.level1name && doc.relativename) {
+          // Concaténer l'URL de base et les parties renvoyées par l'API
+          imageUrl = `${baseURL}/${doc.level1name}/${doc.relativename}`;
+        }
+      }
+
+      // Récupération de la catégorie du produit
+      let catData = [];
+      try {
+        catData = await getData('products/' + products.value[index].id + '/categories?sortfield=s.rowid&sortorder=ASC');
+      } catch (err) {
+        console.error('Erreur récupération catégorie pour le produit', products.value[index].id, err);
+      }
+      const categoryLabel = (catData && catData.length > 0) ? catData[0].label : 'Aucune catégorie';
+
       produits.value.push({
         id: products.value[index].id,
         nom: products.value[index].label,
         prix: products.value[index].price,
         description: products.value[index].description,
-        image: imageUrl, // URL relative
-        categorie: cat[0].label
+        image: imageUrl,
+        categorie: categoryLabel
       });
     }
   } catch (err) {
     console.error('Erreur chargement produits:', err);
   }
 }
-
 
 onMounted(() => {
   loadProducts()
@@ -90,7 +110,7 @@ const ajouterAuPanier = (produit) => {
       </div>
       <h3>{{ produit.nom }}</h3>
       <p>{{ produit.description }}</p>
-      <p class="prix">Prix : {{ produit.prix }} €</p>
+      <p class="prix">Prix : {{ produit.prix }} Ar</p>
       <button @click="ajouterAuPanier(produit)">Ajouter au panier</button>
     </div>
   </div>
@@ -98,18 +118,19 @@ const ajouterAuPanier = (produit) => {
 
 <style scoped>
 .filtrage {
+  margin-top: 15px;
   display: flex;
   justify-content: space-between;
   margin-bottom: 2rem;
   padding: 1rem;
-  background-color: #f1f1f1; /* Légère couleur de fond */
+  background-color: #ebebeb; /* Légère couleur de fond */
   border-radius: 8px;
 }
 
 .filtrage select, .filtrage input {
   padding: 0.5rem;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #211f1f;
   font-size: 1rem;
 }
 
@@ -163,13 +184,13 @@ const ajouterAuPanier = (produit) => {
 }
 
 .carte-produit .prix {
-  color: #00aaff;
+  color: #090909;
   margin-top: 0.5rem;
 }
 
 .carte-produit button {
   margin-top: 1rem;
-  background-color: #00c3ff;
+  background-color: #090909;
   color: white;
   padding: 0.5rem 1rem;
   border: none;
@@ -179,6 +200,6 @@ const ajouterAuPanier = (produit) => {
 }
 
 .carte-produit button:hover {
-  background-color: #009ac7;
+  background-color: #090909;
 }
 </style>

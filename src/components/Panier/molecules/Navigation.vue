@@ -16,6 +16,9 @@
         justify-content: space-between;
         align-items: center;
         padding: 0px 0px;
+        background-color: #0C0C0C;
+        border-radius: 10px 10px 10px 10px;
+        height: 150px;
     }
 
     .nav-list {

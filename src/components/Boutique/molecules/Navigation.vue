@@ -6,7 +6,7 @@
         </ul>
         <div class="logo"><router-link to="/"><img src="../../../assets/logo2.png"></router-link></div>
         <ul class="nav-list">
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="#footer">Contact</a></li>
         </ul>
     </nav>
 </template>
@@ -16,6 +16,9 @@
         justify-content: space-between;
         align-items: center;
         padding: 0px 0px;
+        background-color: #0C0C0C;
+        border-radius: 10px 10px 10px 10px;
+        height: 150px;
     }
 
     .nav-list {
@@ -32,7 +35,7 @@
         font-size: 14px;
         list-style-type: none;
         cursor: pointer;
-        color: #E4E4E4;
+        color: #0e0e0e;
     }
 
     .nav-list li:hover {
