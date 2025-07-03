@@ -39,7 +39,7 @@ const commander = async () => {
       fk_product: produit.id,
       qty: produit.quantite,
       subprice: produit.prix,
-      tva_tx: 20,
+      tva_tx: 0,
       desc: produit.nom
     }));
 

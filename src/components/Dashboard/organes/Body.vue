@@ -4,7 +4,7 @@
     <div class="kpis grid grid-cols-4 gap-20">
       <div class="card p-4 bg-white rounded shadow">
         <h3>Total des ventes</h3>
-        <p>{{ totalSales }} €</p>
+        <p>{{ totalSales }} Ar</p>
       </div>
       <div class="card p-4 bg-white rounded shadow">
         <h3>Produits en stock</h3>
@@ -14,10 +14,10 @@
         <h3>Clients</h3>
         <p>{{ totalClients }}</p>
       </div>
-      <div class="card p-4 bg-white rounded shadow">
+      <!-- <div class="card p-4 bg-white rounded shadow">
         <h3>Mouvements de stock</h3>
         <p>{{ stockMovements.length }}</p>
-      </div>
+      </div> -->
     </div>
 
     <!-- Graphiques -->
@@ -34,7 +34,7 @@
       <h3>Dernières commandes</h3>
       <ul>
         <li v-for="order in recentOrders" :key="order.id">
-          Commande #{{ order.id }} - {{ order.total }} €
+          Commande -{{ order.id }} - {{ order.total }} Ar
         </li>
       </ul>
     </div>

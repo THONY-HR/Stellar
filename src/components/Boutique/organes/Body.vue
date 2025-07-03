@@ -1,12 +1,32 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getData } from '@/util/api.js'
+import { getData, putData } from '@/util/api.js'
+import ProductCard from '../molecules/ProductNote.vue'
 
 import bike1 from '@/assets/Bike/bike.png'
 const baseURL = "http://localhost/dolibarr-21.0.0/documents/produit" // Assurez-vous que cette URL est correcte
 const products = ref([]);
 const produits = ref([]);
 const categories = ref([]);
+
+
+async function notee(valeur,idP) {
+    try {
+      const dataP = await getData('products/'+idP);
+      // console.log("data teste note",dataP.note_public,"Ito ny valeur",valeur,"Ito idProduit",idP);
+      let moyenne = 0;
+      if (dataP.array_options.options_note_produit != null && dataP.array_options.options_note_produit !="") {
+        const noteExist =  JSON.parse(dataP.array_options.options_note_produit);
+        moyenne =(noteExist + valeur)/2;
+      }else{
+        moyenne = valeur;
+      }
+      console.log("ito ny moyenne azo:",moyenne);
+      const dataN = await putData('products/'+idP,{"array_options": {"options_note_produit":moyenne}});
+    } catch (error) {
+      alert(error);
+    }
+}
 
 const loadProducts = async () => {
   try {
@@ -42,14 +62,18 @@ const loadProducts = async () => {
         console.error('Erreur récupération catégorie pour le produit', products.value[index].id, err);
       }
       const categoryLabel = (catData && catData.length > 0) ? catData[0].label : 'Aucune catégorie';
-
+      let noty = products.value[index].array_options.options_note_produit;
+      if (noty==null || noty == "") {
+        noty = 0;
+      }
       produits.value.push({
         id: products.value[index].id,
         nom: products.value[index].label,
         prix: products.value[index].price,
         description: products.value[index].description,
         image: imageUrl,
-        categorie: categoryLabel
+        categorie: categoryLabel,
+        note: noty
       });
     }
   } catch (err) {
@@ -58,7 +82,7 @@ const loadProducts = async () => {
 }
 
 onMounted(() => {
-  loadProducts()
+  loadProducts();
 })
 
 const selectedCategorie = ref('Tous')
@@ -111,12 +135,43 @@ const ajouterAuPanier = (produit) => {
       <h3>{{ produit.nom }}</h3>
       <p>{{ produit.description }}</p>
       <p class="prix">Prix : {{ produit.prix }} Ar</p>
+      <!-- <p>Note actuelle: {{ produit.note }}</p> -->
+      <div style="
+        width: 100%;
+        height: 4%;
+        background-color: aqua;
+        padding-bottom: -70px;
+        border-radius: 5px;
+      ">
+        <div>
+          <div v-if="produit.note != 0">
+              <ProductCard :product="produit.note" />
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <ul style="
+          list-style: none;
+          display: flex;
+          gap: 1rem;
+        ">
+          <li><button @click="notee(1,produit.id)">1</button></li>
+          <li><button @click="notee(2,produit.id)">2</button></li>
+          <li><button @click="notee(3,produit.id)">3</button></li>
+          <li><button @click="notee(4,produit.id)">4</button></li>
+          <li><button @click="notee(5,produit.id)">5</button></li>
+        </ul>
+      </div>
       <button @click="ajouterAuPanier(produit)">Ajouter au panier</button>
     </div>
   </div>
 </template>
 
 <style scoped>
+.note ul li button:hover{
+  background-color: #ccc;
+  color: #090909;
+}
 .filtrage {
   margin-top: 15px;
   display: flex;

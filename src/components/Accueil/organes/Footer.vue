@@ -51,6 +51,7 @@
                 <li style="color: #DA2121;"><a href="#caracteristique">Caractéristique</a></li>
                 <li><a href="#galerie">Galerie</a></li>
                 <li><a href="#footer">Contact</a></li>
+                <li><router-link to="/dashboard">Dashboard</router-link></li>
             </ul>
 
 

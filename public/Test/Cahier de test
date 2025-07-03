@@ -1,0 +1,85 @@
+Scénario de Test :
+    -Structure:
+        * Nom du Test
+        * Objectif
+        * Preconditions
+        * Etape a suivre (Action)
+        * Donne d"'"entree
+        * Resultat attendu
+        * Resultat Obtenu
+        * Statut
+        * Commentaires
+
+    -Login:
+        * Test login Utilisateur 
+        * L"'"Utilisateur peut se connecter avec ses informations
+        * (...) Naviguer vers LoginClient
+        * Etape:
+            1- Completer le forrmulaire avec un email valide
+            2- Click sur le boutton "Se connecter"
+            3- Patienter ...
+        * Donnée: 
+            -Email : rantonirinaanthony@gmail.com
+        * Redirection Automatique vers --> Boutique
+        * Redirection validée ==> Boutique
+        *   [ 
+                { Succes : 200, Redirection: ==> Boutique} , True
+                { Failed : 400, Redirection: ==> LoginClient} , False
+            ]
+        * Bien verifier l"'"email pour eviter [{ echec : 400}, False]
+    
+    -Cree compte:
+        * Test crée compte Utilisateur
+        * Crée une nouvelle utilisateur 
+        * (...) Naviguer vers LoginClient puis appuyer sur "Créer un compte"
+        * Etape:
+            1- compléter les formulaires
+            2- Click sur le boutton "Crée un Compte"
+            3- Patienter ...
+        * Donnée:
+            - Nom
+            - Adresss
+            - Code Postal
+            - Ville
+            - Pays
+            - Téléphone 
+            - Email
+        * Redirection Automatique vers --> Boutique
+        * Redirection validée ==> Boutique
+        *   [ 
+                { Succes : 200, Redirection: ==> Boutique} , True
+                { Failed : 400, Redirection: ==> LoginClient} , False
+            ]
+        * Bien verifier l"'"email pour eviter [{ echec : 400}, False]
+    
+    -Liste Produit:
+        * liste produit de mark stellar
+        * Afficher les produits Stellar
+        * (...) Naviguer vers Boutique sur bar de menu
+        * Action:
+            - Filtre : (Categorie , Recherche Par mot corréspondant)
+            - Affichage des produits 
+            - Note pour chaque produit sous forme de bar entre (1 ->->-> 5)
+        * Bouton ajouter panier
+    
+    -Ajouter Panier:
+        * Ajouter des produits dans le paniers
+        * Stocker les produits selectionner pour continuer vers la commande
+        * (...) Click sur ajouter au panier dans la liste des produits
+        * Pop-up: [Nom produits] 
+            ->Ajouter au panier avec succes
+            ->Erreur lors d"'"ajout au panier
+    -Commande:
+        * Valider les panier pour avoir une commande
+        * Ajouter Quantiter pour chaque produits ajouter dans le panier 
+        * click sur boutton commander:
+            ->Pop-up:Votre commande a été envoyée à Dolibarr avec succès [[Panier vide]]
+                ->
+            ->Pop-up: [[...]] ou Erreur [400] 
+
+    -Liste commande
+        * Afficher les commandes pour chaque utilisateur connecter
+        * Donne:
+            -Reference commande
+            -Detaille Commande
+            -Status

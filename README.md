@@ -16,6 +16,9 @@ cleAPI=3Njlr29vMw6uYy2XGiPj7D89MMVfCw83
     -pour voir les donner de ventes avec graphique
     -details de vente
 
+-ALEA:
+    * noter produit 0 a 5 dans existing app
+    * tehirizina any @ dolibarr
 <!-- agendaevents
 categories
 contacts

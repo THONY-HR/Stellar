@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { getData } from '@/util/api.js';
+import * as XLSX from 'xlsx';
 
 const commandes = ref([]);
 const commandeActive = ref(null);
@@ -35,9 +36,8 @@ const getStatusClass = (statusCode) => {
     "4": "status-facturee",
     "5": "status-annulee"
   };
-  return statusClasses[statusCode] || "status-inconnu"; // Par défaut si inconnu
+  return statusClasses[statusCode] || "status-inconnu";
 };
-
 
 const chargerCommandesDepuisDolibarr = async () => {
   try {
@@ -73,29 +73,117 @@ const fermerPopup = () => {
   showModal.value = false;
 };
 
-const isPdfAvailable = (refCommande) => {
-  const pdfUrl = `http://localhost/dolibarr-21.0.0/documents/commande/${refCommande}/${refCommande}.pdf`;
-  // On vérifie si l'URL du fichier existe en faisant une requête simple
-  // Dans un cas réel, il faudra peut-être vérifier via un appel AJAX pour tester l'existence du fichier
-  return true; // Pour l'instant, on suppose que le fichier est toujours disponible
-};
+const isPdfAvailable = (refCommande) => true;
 
 const telechargerFacture = (refCommande) => {
   const pdfUrl = `http://localhost/dolibarr-21.0.0/documents/commande/${refCommande}/${refCommande}.pdf`;
   window.open(pdfUrl, '_blank');
 };
 
-</script>
+// 📁 Exportation globale JSON
+const exporterJSON = () => {
+  const dataFiltree = commandes.value.map(c => ({
+    ref: c.ref,
+    date: c.date,
+    total_ht: c.total_ht,
+    status: getStatusLabel(c.status),
+    lignes: c.lines?.map(l => ({
+      description: l.desc,
+      quantite: l.qty,
+      prix_unitaire: l.subprice
+    })) || []
+  }));
+  const blob = new Blob([JSON.stringify(dataFiltree, null, 2)], { type: 'application/json' });
+  telechargerBlob(blob, 'commandes.json');
+};
 
+// 📄 Exportation globale CSV
+const exporterCSV = () => {
+  const headers = ['Référence', 'Total HT', 'Statut'];
+  const rows = commandes.value.map(c => [
+    `"${c.ref}"`, `"${c.total_ht}"`, `"${getStatusLabel(c.status)}"`
+  ]);
+  const csv = [headers, ...rows].map(e => e.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  telechargerBlob(blob, 'commandes.csv');
+};
+
+// 📊 Export Excel
+const exporterExcel = () => {
+  const data = commandes.value.map(c => ({
+    Référence: c.ref,
+    Date: c.date,
+    'Total HT': c.total_ht,
+    Statut: getStatusLabel(c.status)
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Commandes');
+  XLSX.writeFile(wb, 'commandes.xlsx');
+};
+
+// 📥 Téléchargement Blob
+const telechargerBlob = (blob, filename) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+// 🎯 Export individuel
+const exporterCommande = (commande, type) => {
+  const data = {
+    ref: commande.ref,
+    date: commande.date,
+    total_ht: commande.total_ht,
+    status: getStatusLabel(commande.status),
+    lignes: commande.lines?.map(l => ({
+      description: l.desc,
+      quantite: l.qty,
+      prix_unitaire: l.subprice
+    })) || []
+  };
+
+  if (type === 'json') {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    telechargerBlob(blob, `commande-${commande.ref}.json`);
+  } else if (type === 'csv') {
+    const headers = ['Description', 'Quantité', 'Prix Unitaire'];
+    const lignes = data.lignes.map(l => [`"${l.description}"`, l.quantite, l.prix_unitaire]);
+    const csv = [['Référence', commande.ref], ['Date', commande.date], ['Statut', data.status], [], headers, ...lignes].map(e => e.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    telechargerBlob(blob, `commande-${commande.ref}.csv`);
+  } else if (type === 'excel') {
+    const lignes = data.lignes.map(l => ({
+      Description: l.description,
+      Quantité: l.quantite,
+      'Prix Unitaire': l.prix_unitaire
+    }));
+    const ws = XLSX.utils.json_to_sheet(lignes);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `Commande-${commande.ref}`);
+    XLSX.writeFile(wb, `commande-${commande.ref}.xlsx`);
+  }
+};
+</script>
 
 <template>
   <div class="commande-list">
     <h2>Historique des Commandes</h2>
 
+    <!-- ✅ Exportations globales -->
+    <div style="margin-bottom: 1rem;">
+      <button @click="exporterJSON" class="btn-details">📁 Exporter en JSON</button>
+      <button @click="exporterCSV" class="btn-details">📄 Exporter en CSV</button>
+      <button @click="exporterExcel" class="btn-details">📊 Exporter en Excel</button>
+    </div>
+
     <div v-if="commandes.length === 0">
       <p>Vous n'avez pas encore passé de commande.</p>
     </div>
-    
+
     <div v-else>
       <div 
         v-for="commande in commandes" 
@@ -104,13 +192,11 @@ const telechargerFacture = (refCommande) => {
       >
         <h3>Commande Réf. : {{ commande.ref }}</h3>
         <p>Total : {{ formatMontant(commande.total_ht) }} MGA</p>
-        
-        <!-- Statut avec couleur dynamique -->
+
         <p :class="getStatusClass(commande.status)">
           Statut : <strong>{{ getStatusLabel(commande.status) }}</strong>
         </p>
 
-        <!-- Conteneur des boutons -->
         <div class="button-container">
           <button 
             v-if="commande.status === '1'" 
@@ -122,11 +208,19 @@ const telechargerFacture = (refCommande) => {
           </button>
 
           <button @click="voirDetails(commande.id)" class="btn-details">Voir Détails</button>
+
+          <!-- ✅ Export individuel -->
+          <select @change="event => exporterCommande(commande, event.target.value)" class="btn-details">
+            <option disabled selected>Exporter cette commande</option>
+            <option value="json">📁 JSON</option>
+            <option value="csv">📄 CSV</option>
+            <option value="excel">📊 Excel</option>
+          </select>
         </div>
       </div>
     </div>
 
-    <!-- ✅ Popup -->
+    <!-- ✅ Détails commande -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal-content">
         <h3>Détails de la commande {{ commandeActive.ref }}</h3>
@@ -141,6 +235,7 @@ const telechargerFacture = (refCommande) => {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .commande-list {
@@ -190,7 +285,7 @@ h2 {
 }
 
 .btn-details {
-  background-color: #007bff;
+  background-color: #0e0f0f;
   color: white;
   border: none;
   border-radius: 8px;
